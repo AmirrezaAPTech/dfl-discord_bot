@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import dotenv from 'dotenv';
 import { messageCreate } from './events/messageCreate.event';
+import { handleGuildMemberAdd } from './events/guildMemberAdd.event';
 
 dotenv.config();
 
@@ -15,7 +16,16 @@ const client = new Client({
     'partials': [Partials.Channel]
 });
 
+
 client.on('messageCreate', messageCreate);
+client.on('guildMemberAdd', async (member) => {
+  try {
+    // Call the handleGuildMemberAdd function when a new member joins
+    await handleGuildMemberAdd(member, client);
+  } catch (err: any) {
+    console.error(`Error handling guild member add: ${err.message || err}`);
+  }
+});
 
 client.once('ready', () => {
   console.log(`Bot is online and ready to go!`);

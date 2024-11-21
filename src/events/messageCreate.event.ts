@@ -1,8 +1,9 @@
 import { DMChannel, Message, Client, GuildMember } from 'discord.js'; // Import necessary types
-import { habitChannels, HabitName } from '../config/habitChannels';
-import { completeHabit } from '../services/habit.service';
+import { habitChannelIds, HabitCahnnels } from '../config/habitChannels';
 import { logger } from '../utils/logger';
 import { sendVerificationMessage } from '../services/verifiction.service';
+import { handleHabitMessage } from '../services/habit-management/habit.service';
+import { sendMessage } from '../services/announcement-management/sendMessage.service';
 
 /**
  * Handles the event when a message is created.
@@ -15,27 +16,29 @@ export const messageCreate = async (message: Message) => {
     const { channel, content, author } = message;
 
     // Determine the habit name based on the channel ID
-    let habitName: HabitName | undefined;
-    for (const [key, id] of Object.entries(habitChannels)) {
-      if (channel.id === id) {
-        habitName = key as HabitName;
-        
-        // Prepare the habit completion data
-        const habitData = {
-          userId: author.id, // Use author ID
-          habitName,
-          data: content // Use the message content
-        };
-        
-        // Call the habit completion service (await this)
-        const response = await completeHabit(habitData);
+    // let habitName: HabitName | undefined;
+    const habitName = Object.keys(habitChannelIds).find(
+      (habit) => habitChannelIds[habit as HabitCahnnels] === message.channel.id
+    ) as HabitCahnnels | undefined;
 
-        // Optionally handle the response if necessary, or log the success
-        logger.log(`Habit '${habitName}' completed successfully by ${author.id}`);
+      if (habitName) {
+
+        try {
+          await handleHabitMessage(message, habitName);
+        } catch (error: any) {
+          // If an error occurs, log it and send a message to the user
+          if (error.response) {
+            // Axios error response
+            console.error('Axios error response:', error.response.data);
+            await message.reply(error.response.data.error || 'An error occurred while completing your habit.');
+          } else {
+            // Non-Axios error
+            console.error('Error:', error.message);
+            await message.reply('An unexpected error occurred.');
+          }
+        }
 
         // Break after completing the habit for the channel
-        break;
-      }
     }
 
     if (message.channel instanceof DMChannel) {
@@ -61,9 +64,6 @@ export const messageCreate = async (message: Message) => {
         }
       }
     }
-
-    // If the message is in an unrelated channel, ignore it
-    if (!habitName) return;
 
   } catch (error) {
     // Log the error and notify the user

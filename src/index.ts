@@ -1,7 +1,8 @@
-import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import { ButtonInteraction, Client, CommandInteraction, GatewayIntentBits, ModalSubmitInteraction, Partials } from 'discord.js';
 import dotenv from 'dotenv';
 import { messageCreate } from './events/messageCreate.event';
 import { handleGuildMemberAdd } from './events/guildMemberAdd.event';
+import { interactionCreate } from './events/interactionCreate.event';
 
 dotenv.config();
 
@@ -18,13 +19,17 @@ const client = new Client({
 
 
 client.on('messageCreate', messageCreate);
-client.on('guildMemberAdd', async (member) => {
-  try {
-    // Call the handleGuildMemberAdd function when a new member joins
-    await handleGuildMemberAdd(member, client);
-  } catch (err: any) {
-    console.error(`Error handling guild member add: ${err.message || err}`);
-  }
+// client.on('guildMemberAdd', async (member) => {
+//   try {
+//     // Call the handleGuildMemberAdd function when a new member joins
+//     await handleGuildMemberAdd(member, client);
+//   } catch (err: any) {
+//     console.error(`Error handling guild member add: ${err.message || err}`);
+//   }
+// });
+
+client.on('interactionCreate', async (interaction) => {
+  await interactionCreate(client, interaction);
 });
 
 client.once('ready', () => {

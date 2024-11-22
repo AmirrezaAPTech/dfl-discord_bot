@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Message, TextChannel } from 'discord.js';
+import { Client, Message, TextChannel } from 'discord.js';
 import { sendJournalingText } from './journaling.service';
 import { logger } from '../../utils/logger';
 import { HabitCahnnels, habitIds, HabitIds, PersianHabits, persianHabits } from '../../config/habitChannels';
@@ -18,8 +18,8 @@ export const handleHabitMessage = async (message: Message, habitName: string) =>
 
   // Additional validation for journaling
   if (habitName === 'journaling') {
-    if (message.content.length <= 150) {
-      sendTemporaryMessage(message.channel as TextChannel,`تعداد حروف جونالینگ فعلی : ${message.content.length} \n <@${message.author.id}> :blossom: جورنالینگ شما حداقل باید ۱۵۰ حرف باشد`, 10)
+    if (message.content.length < 150) {
+      sendTemporaryMessage(message.channel as TextChannel,`<@${message.author.id}> \n جورنالینگت باید حداقل ۱۵۰ حرف باشه ولی اینی که فرستادی فقط ${message.content.length} حرفه⛔️`, 10)
       return;
     }
   }
@@ -32,11 +32,12 @@ export const handleHabitMessage = async (message: Message, habitName: string) =>
 
   // Send a message to the points channel
   if (pointsChannel?.isTextBased()) {
-    await pointsChannel.send(`<@${message.author.id}> یه امتیاز برای ${persianHabitName} گرفت :saluting_face:`);
+    await pointsChannel.send(`<@${message.author.id}> :one: امتیاز برای ${persianHabitName} گرفت!`);
   } else {
     logger.warn(`Points channel (${pointsChannelId}) is not accessible or invalid.`);
   }
 };
+
 
 const increaseUserPoints = async (
   message: Message,
@@ -65,16 +66,19 @@ const increaseUserPoints = async (
       return true;
     }else if(response.data.message && response.data.message === 'ACTION_NOT_ALLOWED_TIME_RANGE'){
       if(habitName === "earlybird") {
-        sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n سحرخیزی فقط از ساعت ۵ تا ۸ صبح امکان پذیر است :sunny:`, 10)
+        sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n عادت ${persianHabitName} رو فقط از ساعت ۵ صبح تا ۸ صبح میتونی ثبت کنی ⛔️`, 10)
       }else {
-        sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n عادت ها فقط از ساعت ۵ صبح تا ۱۲ شب انجام پذیرند :hourglass: `, 10)
+        sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n عادت ${persianHabitName} رو فقط از ساعت ۵ صبح تا ۱۲ شب میتونی ثبت کنی ⛔️`, 10)
       }
 
     }else if(response.data.message && response.data.message === 'ALREADY_EARNED_POINTS_TODAY'){
-      sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n ${persianHabitName} رو امروز انجام دادی `, 10)
+      sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n عادت ${persianHabitName} رو امروز قبلا انجام دادی 🌱`, 10)
+    }else if(response.data.message && response.data.message === 'USER_NOT_FOUND'){
+      sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n هنوز اکانتت رو verify نکردی برای همین امتیازی نمیگیری ! \n مراحل verify رو از چنل <#1292789085143826452> جلو برو بعد امتیازت رو ثبت کن .`, 10)
+      message.author.send(`هنوز اکانتت رو verify نکردی برای همین امتیازی نمیگیری ! \n مراحل verify رو از چنل Welcome جلو برو بعد امتیازت رو ثبت کن .`)
     }
     else {
-      sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n روند انحام عادت به مشکل خورد. لطفا بعد تلاش کنید :heart: `, 10)
+      sendTemporaryMessage(message.channel as TextChannel, `<@${message.author.id}> \n لطفا دوباره تلاش کن! `, 10)
       logger.info(`Failed to increase points for user ${message.author.tag} ${message.author.id} on habit ${habitId}: ${JSON.stringify(response.data)}`);
       return false
     }

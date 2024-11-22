@@ -21,11 +21,11 @@ export const habitIds = {
   export type HabitIds = keyof typeof habitIds;  
 
 export const persianHabits = {
-  earlybird: 'سحرخیزی', // Replace with actual habit IDs
-  journaling: 'جورنالینگ',
-  exercise: 'ورزش',
-  book: 'کتابخوانی',
-  planning: 'برنامه ریزی',
+  earlybird: 'سحرخیزی 🌞', // Replace with actual habit IDs
+  journaling: 'جورنالینگ ✍🏽',
+  exercise: 'ورزش 🏋',
+  book: 'کتابخوانی 📚',
+  planning: 'برنامه ریزی 📝',
 } as const;
   
   export type PersianHabits = keyof typeof persianHabits;  

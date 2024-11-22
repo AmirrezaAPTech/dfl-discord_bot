@@ -4,6 +4,9 @@ import { logger } from '../utils/logger';
 import { sendVerificationMessage } from '../services/verifiction.service';
 import { handleHabitMessage } from '../services/habit-management/habit.service';
 import { sendMessage } from '../services/announcement-management/sendMessage.service';
+import { sendMessageCommand } from '../commands/admin/sendMessage';
+import { scheduleMessageCommand } from '../commands/admin/scheduleMessage';
+import { secretJournalingCommand } from '../commands/user/secretJournaling';
 
 /**
  * Handles the event when a message is created.
@@ -16,7 +19,6 @@ export const messageCreate = async (message: Message) => {
     const { channel, content, author } = message;
 
     // Determine the habit name based on the channel ID
-    // let habitName: HabitName | undefined;
     const habitName = Object.keys(habitChannelIds).find(
       (habit) => habitChannelIds[habit as HabitCahnnels] === message.channel.id
     ) as HabitCahnnels | undefined;
@@ -39,6 +41,10 @@ export const messageCreate = async (message: Message) => {
         }
 
         // Break after completing the habit for the channel
+    }else if (message.content.toLowerCase() === '!sendmessage') {
+      await sendMessageCommand(message);
+    } else if (message.content.toLowerCase() === '!sendscheduledmessage') {
+      await scheduleMessageCommand(message);
     }
 
     if (message.channel instanceof DMChannel) {
@@ -62,6 +68,8 @@ export const messageCreate = async (message: Message) => {
         } catch (err: any) {
           logger.error(`Error fetching member: ${err.message}`);
         }
+      }else if (message.content.toLowerCase() === 'جورنالینگ ناشناس') {
+        await secretJournalingCommand(message);
       }
     }
 

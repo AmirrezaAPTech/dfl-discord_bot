@@ -14,6 +14,10 @@ import { sendMessage } from "../services/announcement-management/sendMessage.ser
 import { sendMessageCommand } from "../commands/admin/sendMessage";
 import { scheduleMessageCommand } from "../commands/admin/scheduleMessage";
 import { secretJournalingCommand } from "../commands/user/secretJournaling";
+import dotenv from "dotenv";
+import { validateAdminAccess, validateUserInServer } from "../utils/validation";
+
+dotenv.config();
 
 /**
  * Handles the event when a message is created.
@@ -22,6 +26,25 @@ import { secretJournalingCommand } from "../commands/user/secretJournaling";
 export const messageCreate = async (message: Message) => {
   try {
     if (message.author.bot) return; // Ignore bot messages
+
+    const client = message.client;
+    const guildId = process.env.GUILD_ID;
+    if (!guildId) {
+      throw new Error("GUILD_ID is not defined");
+    }
+    const guild = client.guilds.cache.get(guildId);
+
+    if (guild) {
+      const isMember = await validateUserInServer(message.author.id, guild);
+      if (!isMember) {
+        await message.reply(
+          "You must be a member of our server to use this bot."
+        );
+        return;
+      }
+    } else {
+      throw new Error("guild is not defined");
+    }
 
     const { channel, content, author } = message;
 
@@ -51,8 +74,10 @@ export const messageCreate = async (message: Message) => {
 
       // Break after completing the habit for the channel
     } else if (message.content.toLowerCase() === "!sendmessage") {
+      if (!validateAdminAccess(message)) return;
       await sendMessageCommand(message);
     } else if (message.content.toLowerCase() === "!sendscheduledmessage") {
+      if (!validateAdminAccess(message)) return;
       await scheduleMessageCommand(message);
     }
 

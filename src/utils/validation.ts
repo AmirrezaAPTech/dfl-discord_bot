@@ -1,13 +1,15 @@
-import { Message, Guild } from "discord.js";
+import { Message, Guild, TextChannel } from "discord.js";
 import { logger } from "../utils/logger";
+import { sendTemporaryMessage } from "../services/temporeryMessage.service";
 
 // List of admin user IDs allowed to use admin-specific APIs
 const adminUserIds = [
-  "123456789012345678", // Replace with actual admin user IDs
-  "234567890123456789",
-  "345678901234567890",
-  "456789012345678901",
-  "567890123456789012",
+  "884017475182796810", // Replace with actual admin user IDs
+  "942348370045992960",
+  "1119289139259519126",
+  "931859079742226453",
+  "943105263563604018",
+  "798823711213092864",
 ];
 
 /**
@@ -35,7 +37,11 @@ export const validateUserInServer = async (
  */
 export const validateAdminAccess = (message: Message): boolean => {
   if (!adminUserIds.includes(message.author.id)) {
-    message.reply("You do not have permission to use this feature.");
+    sendTemporaryMessage(
+      message.channel as TextChannel,
+      `<@${message.author.id}> You do not have permission to use this feature.`,
+      20
+    );
     return false;
   }
   return true;

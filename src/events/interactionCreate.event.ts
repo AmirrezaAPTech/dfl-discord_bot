@@ -22,7 +22,7 @@ export const interactionCreate = async (client: Client, interaction: Interaction
       await handleSendMessageModal(interaction);
     } else if (interaction.customId === 'modal_schedule_message') {
       await handleScheduleMessageModal(interaction);
-    }else if (interaction.customId === 'modal_secret_journaling') {
+    }else if (interaction.isModalSubmit() && interaction.customId === 'modal_secret_journaling') {
       await handleSecretJournalingModal(interaction, client);
     }
   }

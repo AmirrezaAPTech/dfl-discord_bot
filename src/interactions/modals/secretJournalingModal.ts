@@ -1,31 +1,33 @@
 import { Client, ModalSubmitInteraction } from 'discord.js';
-import { saveScheduledMessage } from '../../services/announcement-management/sendMessage.service';
-import { handleHabitMessage, handleSecretJournaling } from '../../services/habit-management/habit.service';
+import { handleSecretJournaling } from '../../services/habit-management/secretJournaling.service';
 
 export const handleSecretJournalingModal = async (interaction: ModalSubmitInteraction, client: Client) => {
-  try {
-    const journalingContent = interaction.fields.getTextInputValue('journaling_content');
-    const discordId = interaction.user.id;
+    try {
+        const successful = await handleSecretJournaling(client, interaction); // Pass interaction
 
-    const successful = await handleSecretJournaling( client, journalingContent, discordId)
+        // Only reply if successful  
+        if (successful) {
+            await interaction.reply({
+                content: 'جورنالبنگ ناشناس شما با موفقیت ثبت شد',
+                ephemeral: true,
+            });
+            return; // Return early to avoid multiple replies  
+        } 
 
-    // Only reply if successful
-    if (successful) {
-      await interaction.reply({
-        content: 'جورنالبنگ ناشناس شما با موفقیت ثبت شد',
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: 'دوباره تلاش کن!',
-        ephemeral: true,
-      });
+        // If not successful, reply with an error message  
+        await interaction.reply({
+            content: 'دوباره تلاش کن!',
+            ephemeral: true,
+        });
+        return; // Return early to avoid multiple replies  
+    } catch (error) {
+        console.error('Error handling secret journaling modal:', error);
+        // Ensure that you don't reply multiple times  
+        if (!interaction.replied) {
+            await interaction.reply({
+                content: 'An unexpected error occurred. Please try again later.',
+                ephemeral: true,
+            });
+        }
     }
-  } catch (error) {
-    console.error('Error handling schedule message modal:', error);
-    await interaction.reply({
-      content: 'An unexpected error occurred. Please try again later.',
-      ephemeral: true,
-    });
-  }
 };

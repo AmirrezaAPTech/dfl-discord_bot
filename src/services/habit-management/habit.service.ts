@@ -32,7 +32,7 @@ export const handleHabitMessage = async (message: Message, habitName: string) =>
 
   // Send a message to the points channel
   if (pointsChannel?.isTextBased()) {
-    await pointsChannel.send(`<@${message.author.id}> :one: امتیاز برای ${persianHabitName} گرفت!`);
+    await pointsChannel.send(`<@${message.author.id}> 1 امتیاز برای ${persianHabitName} گرفت!`);
   } else {
     logger.warn(`Points channel (${pointsChannelId}) is not accessible or invalid.`);
   }

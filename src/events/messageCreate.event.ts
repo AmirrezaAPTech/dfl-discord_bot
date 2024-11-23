@@ -16,6 +16,7 @@ import { scheduleMessageCommand } from "../commands/admin/scheduleMessage";
 import { secretJournalingCommand } from "../commands/user/secretJournaling";
 import dotenv from "dotenv";
 import { validateAdminAccess, validateUserInServer } from "../utils/validation";
+import { sendIdeaCommand } from "../commands/user/sendIdea";
 
 dotenv.config();
 
@@ -104,8 +105,10 @@ export const messageCreate = async (message: Message) => {
         } catch (err: any) {
           logger.error(`Error fetching member: ${err.message}`);
         }
-      } else if (message.content.toLowerCase() === "جورنالینگ ناشناس") {
+      } else if (message.content.toLowerCase() === "j") {
         await secretJournalingCommand(message);
+      } else if (message.content.toLowerCase() === "idea") {
+        await sendIdeaCommand(message);
       }
     }
 

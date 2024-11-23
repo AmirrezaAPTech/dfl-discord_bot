@@ -1,9 +1,14 @@
-import { ModalSubmitInteraction, Client, TextChannel } from "discord.js";
+import {
+  ModalSubmitInteraction,
+  Client,
+  TextChannel,
+  NewsChannel,
+} from "discord.js";
 import axios from "axios";
 import { logger } from "../../utils/logger";
 
-const pointsChannelId = "1308823001784914031";
-const journalingChannelId = "1306619862323433563";
+const pointsChannelId = "1293022156799737920";
+const journalingChannelId = "1292828193320865792";
 const journalingHabitId = "6717c1fb14e4bbed72b2f8e1";
 
 export const handleSecretJournaling = async (
@@ -43,9 +48,9 @@ export const handleSecretJournaling = async (
       // Notify user of success
       const pointsChannel = client.channels.cache.get(
         pointsChannelId
-      ) as TextChannel;
+      ) as NewsChannel;
 
-      if (pointsChannel?.isTextBased()) {
+      if (pointsChannel instanceof NewsChannel) {
         await pointsChannel.send(
           `:star: یک کاربر ناشناس به خاطر جورنالینگ 1 امتیاز گرفت!`
         );

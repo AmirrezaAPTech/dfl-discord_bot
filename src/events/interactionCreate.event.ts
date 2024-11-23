@@ -1,29 +1,76 @@
-import { Client, Interaction } from 'discord.js';
-import { handleSendMessageButton } from '../interactions/buttons/sendMessageButton';
-import { handleScheduleMessageButton } from '../interactions/buttons/scheduleMessageButton';
-import { handleSendMessageModal } from '../interactions/modals/sendMessageModal';
-import { handleScheduleMessageModal } from '../interactions/modals/scheduleMessageModal';
-import { handleSecretJournalingButton } from '../interactions/buttons/secretJournalingButton';
-import { handleSecretJournalingModal } from '../interactions/modals/secretJournalingModal';
+import { Client, Interaction } from "discord.js";
+import { handleSendMessageButton } from "../interactions/buttons/sendMessageButton";
+import { handleScheduleMessageButton } from "../interactions/buttons/scheduleMessageButton";
+import { handleSecretJournalingButton } from "../interactions/buttons/secretJournalingButton";
+import { handleIdeaButton } from "../interactions/buttons/sendIdeaButton";
+import { handleSendMessageModal } from "../interactions/modals/sendMessageModal";
+import { handleScheduleMessageModal } from "../interactions/modals/scheduleMessageModal";
+import { handleSecretJournalingModal } from "../interactions/modals/secretJournalingModal";
+import {
+  handleIdeaModal,
+  handleSecretChoice,
+} from "../interactions/modals/sendIdeaModal";
 
-export const interactionCreate = async (client: Client, interaction: Interaction) => {
-  if (interaction.isButton()) {
-    if (interaction.customId === 'send_message') {
-      await handleSendMessageButton(interaction);
-    } else if (interaction.customId === 'schedule_message') {
-      await handleScheduleMessageButton(interaction);
-    }else if (interaction.customId === 'secret_journaling') {
-      await handleSecretJournalingButton(interaction);
+export const interactionCreate = async (
+  client: Client,
+  interaction: Interaction
+) => {
+  try {
+    // Handle Button Interactions
+    if (interaction.isButton()) {
+      switch (interaction.customId) {
+        case "send_message":
+          await handleSendMessageButton(interaction);
+          break;
+        case "schedule_message":
+          await handleScheduleMessageButton(interaction);
+          break;
+        case "secret_journaling":
+          await handleSecretJournalingButton(interaction);
+          break;
+        case "send_idea":
+          await handleIdeaButton(interaction);
+          break;
+        case "secret_true":
+        case "secret_false":
+          await handleSecretChoice(interaction, client); // Pass to secret choice handler
+          break;
+        default:
+          console.warn(`Unhandled button interaction: ${interaction.customId}`);
+      }
     }
-  }
 
-  if (interaction.isModalSubmit()) {
-    if (interaction.customId === 'modal_send_message') {
-      await handleSendMessageModal(interaction);
-    } else if (interaction.customId === 'modal_schedule_message') {
-      await handleScheduleMessageModal(interaction);
-    }else if (interaction.isModalSubmit() && interaction.customId === 'modal_secret_journaling') {
-      await handleSecretJournalingModal(interaction, client);
+    // Handle Modal Submissions
+    if (interaction.isModalSubmit()) {
+      switch (interaction.customId) {
+        case "modal_send_message":
+          await handleSendMessageModal(interaction);
+          break;
+        case "modal_schedule_message":
+          await handleScheduleMessageModal(interaction);
+          break;
+        case "modal_secret_journaling":
+          await handleSecretJournalingModal(interaction, client);
+          break;
+        case "modal_send_Idea":
+          await handleIdeaModal(interaction, client);
+          break;
+        default:
+          console.warn(`Unhandled modal interaction: ${interaction.customId}`);
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error handling interaction (ID: ${interaction.id}, Type: ${interaction.type}): `,
+      error
+    );
+
+    if (interaction.isRepliable()) {
+      await interaction.reply({
+        content:
+          "An unexpected error occurred while processing your interaction.",
+        ephemeral: true,
+      });
     }
   }
 };

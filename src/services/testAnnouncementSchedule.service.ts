@@ -3,7 +3,9 @@ import moment from "moment-timezone";
 
 const announcementChannelId = "1292794241457586239";
 const messageContent =
-  "🌱 رمز امروز: \n \n  هر چی سخت‌تر کار کنم، شانس بیشتری سراغم میاد. \n \n 📝 موضوع جورنالینگ: \n \n بزرگترین نقدی که به خودم دارم اینه که...";
+  "هنوز که بیداری 😠 گوشیو بذار کنار زود برو تو تخت که فردا سحرخیزی سه‌شنبه داریم! 🌞  \n \n 🎯 تارگت این هفته: 38 دوئر \n \n رمز سحرخیزی رو تا قبل ۸ بذار تو چنل 👈🏻 earlybird \n <#1292823423453499462> \n \n  @everyone";
+// const messageContent =
+//   "🌱 رمز امروز: \n \n  از آینه بپرس نام نجات دهنده‌ات را. \n \n 📝 موضوع جورنالینگ: \n \n کدوم ترس‌ها رو طولانی مدت داشتی ولی بالاخره شکستشون دادی؟ چی باعثش شد؟";
 
 export const scheduleAnnouncement = (client: Client) => {
   // Get current time in Tehran (Iran Standard Time)
@@ -12,7 +14,7 @@ export const scheduleAnnouncement = (client: Client) => {
   // Set the target time for today at 4:30 AM in Tehran time
   const target = moment()
     .tz("Asia/Tehran")
-    .set({ hour: 5, minute: 0, second: 0, millisecond: 0 });
+    .set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
 
   // If the target time is already in the past today, schedule for the next day
   if (target.isBefore(now)) {

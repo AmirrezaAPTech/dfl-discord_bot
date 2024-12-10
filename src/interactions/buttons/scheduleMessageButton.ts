@@ -1,3 +1,5 @@
+// src/interaction/buttons/scheduleMessageButton.ts
+
 import {
   ButtonInteraction,
   ModalBuilder,
@@ -11,27 +13,37 @@ export const handleScheduleMessageButton = async (
 ) => {
   const modal = new ModalBuilder()
     .setCustomId("modal_schedule_message")
-    .setTitle("Schedule a Message");
+    .setTitle("زمانبندی اعلامیه");
 
-  const channelInput = new TextInputBuilder()
-    .setCustomId("channel_id")
-    .setLabel("Channel ID")
-    .setStyle(TextInputStyle.Short);
+  // Announcement Message Input
+  const announcementInput = new TextInputBuilder()
+    .setCustomId("announcement_message")
+    .setLabel("متن اعلامیه")
+    .setStyle(TextInputStyle.Paragraph)
+    .setRequired(true)
+    .setMaxLength(2000);
 
-  const messageInput = new TextInputBuilder()
-    .setCustomId("message_content")
-    .setLabel("Message Content")
-    .setStyle(TextInputStyle.Paragraph);
+  // Date and Time Input
+  const dateTimeInput = new TextInputBuilder()
+    .setCustomId("announcement_datetime")
+    .setLabel("تاریخ و زمان (YYYY-MM-DD HH:MM)")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder("مثال: 2024-12-31 23:59")
+    .setRequired(true);
 
-  const dateInput = new TextInputBuilder()
-    .setCustomId("scheduled_datetime")
-    .setLabel("Scheduled Date & Time (YYYY-MM-DD HH:mm)")
-    .setStyle(TextInputStyle.Short);
+  // Target Channel ID Input
+  const targetChannelInput = new TextInputBuilder()
+    .setCustomId("target_channel_id")
+    .setLabel("شناسه کانال هدف (a برای اعلان‌ها)")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder("مثال: a یا 123456789012345678")
+    .setRequired(true);
 
+  // Add inputs to the modal
   modal.addComponents(
-    new ActionRowBuilder<TextInputBuilder>().addComponents(channelInput),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(messageInput),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(dateInput)
+    new ActionRowBuilder<TextInputBuilder>().addComponents(announcementInput),
+    new ActionRowBuilder<TextInputBuilder>().addComponents(dateTimeInput),
+    new ActionRowBuilder<TextInputBuilder>().addComponents(targetChannelInput)
   );
 
   await interaction.showModal(modal);

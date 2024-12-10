@@ -1,7 +1,10 @@
 import axios from "axios";
 import { logger } from "../../utils/logger";
 
-export const sendMessage = async (channelID: string, messageContent: string): Promise<boolean> => {
+export const sendMessage = async (
+  channelID: string,
+  messageContent: string
+): Promise<boolean> => {
   try {
     const data = {
       channelID,
@@ -13,15 +16,17 @@ export const sendMessage = async (channelID: string, messageContent: string): Pr
     );
 
     logger.info(`Send Message API Response: ${JSON.stringify(response.data)}`);
-    
+
     // Check if the response is successful
     if (response.data.message === "success") {
-        return true;
-      } else {
-        return false;
-      }
+      return true;
+    } else {
+      return false;
+    }
   } catch (error: any) {
-    logger.error(`Failed to Send Message: ${error.response?.data || error.message}`);
+    logger.error(
+      `Failed to Send Message: ${error.response?.data || error.message}`
+    );
     return false;
   }
 };
@@ -42,14 +47,16 @@ export const saveScheduledMessage = async (
       data
     );
 
-    logger.info(`Save Scheduled Message API Response: ${JSON.stringify(response.data)}`);
-    
+    logger.info(
+      `Save Scheduled Message API Response: ${JSON.stringify(response.data)}`
+    );
+
     // Check if the response is successful
     if (response.data.message === "success") {
-        return true;
-      } else {
-        return false;
-      }
+      return true;
+    } else {
+      return false;
+    }
   } catch (error: any) {
     logger.error(`Failed to Save Scheduled Message: ${error}`);
     return false;

@@ -50,8 +50,9 @@ export const handleHabitMessage = async (
 
   // Send a message to the points channel
   if (pointsChannel && pointsChannel instanceof NewsChannel) {
+    const streakNumber = await getUserInfo(message.author.id, habitId);
     await pointsChannel.send(
-      `<@${message.author.id}> 1 امتیاز برای ${persianHabitName} گرفت!`
+      `یک امتیاز برای ${persianHabitName} به <@${message.author.id}> داده شد! \n استریک: ${streakNumber} 🔥`
     );
   } else {
     logger.warn(
@@ -75,12 +76,10 @@ const increaseUserPoints = async (
         numberOfPoints: points,
       }
     );
+
     const persianHabitName = persianHabits[habitName as HabitIds];
     // Check the response for success or specific error codes
-    if (
-      response.data.message &&
-      response.data.message === "POINTS_AND_STREAK_UPDATED_SUCCESSFULLY"
-    ) {
+    if (response.data && response.data.success === true) {
       if (habitName === "journaling") {
         await sendJournalingText(message.author.id, message.content);
       }
@@ -104,24 +103,6 @@ const increaseUserPoints = async (
           10
         );
       }
-    } else if (
-      response.data.message &&
-      response.data.message === "ALREADY_EARNED_POINTS_TODAY"
-    ) {
-      sendTemporaryMessage(
-        message.channel as TextChannel,
-        `<@${message.author.id}> \n عادت ${persianHabitName} رو امروز قبلا انجام دادی 🌱`,
-        10
-      );
-    } else if (
-      response.data.message &&
-      response.data.message === "USER_NOT_FOUND"
-    ) {
-      sendTemporaryMessage(
-        message.channel as TextChannel,
-        `<@${message.author.id}> \n هنوز اکانتت رو verify نکردی برای همین امتیازی نمیگیری ! \n مراحل verify رو از چنل <#1292789085143826452> جلو برو بعد امتیازت رو ثبت کن .`,
-        10
-      );
     } else {
       sendTemporaryMessage(
         message.channel as TextChannel,
@@ -137,11 +118,78 @@ const increaseUserPoints = async (
     }
     return false;
   } catch (error: any) {
-    logger.error(
-      `Failed to increase points for user ${message.author.tag} ${
-        message.author.id
-      } on habit ${habitId}: ${error.response?.data || error.message}`
-    );
+    if (error.response) {
+      const { data } = error.response;
+      const persianHabitName = persianHabits[habitName as HabitIds];
+
+      if (data.message === "ONCE_A_DAY") {
+        sendTemporaryMessage(
+          message.channel as TextChannel,
+          `<@${message.author.id}> \n عادت ${persianHabitName} رو امروز قبلا انجام دادی 🌱`,
+          10
+        );
+        return false;
+      } else if (
+        data.message ===
+        "This habit can only be done between 5 AM and 8 AM Iran time"
+      ) {
+        sendTemporaryMessage(
+          message.channel as TextChannel,
+          `<@${message.author.id}> \n عادت ${persianHabitName} رو فقط از ساعت ۵ صبح تا ۸ صبح میتونی ثبت کنی ⛔️`,
+          10
+        );
+      } else if (data.message === "USER_NOT_FOUND") {
+        sendTemporaryMessage(
+          message.channel as TextChannel,
+          `<@${message.author.id}> \n هنوز اکانتت رو verify نکردی برای همین امتیازی نمیگیری ! \n مراحل verify رو از چنل <#1292789085143826452> جلو برو بعد امتیازت رو ثبت کن .`,
+          10
+        );
+      } else if (
+        data.message ===
+        "This habit can only be done between 5 and 24 Iran time"
+      ) {
+        sendTemporaryMessage(
+          message.channel as TextChannel,
+          `<@${message.author.id}> \n عادت ${persianHabitName} رو فقط از ساعت ۵ صبح تا ۱۲ شب میتونی ثبت کنی ⛔️`,
+          10
+        );
+      }
+
+      logger.warn(
+        `Failed to increase points due to server response: ${JSON.stringify(
+          data
+        )}`
+      );
+    } else {
+      // Handle network or other unexpected errors
+      logger.error(`Unexpected error: ${error.message}`);
+    }
     return false;
+  }
+};
+
+interface HabitStreak {
+  habitID: string;
+  currentStreak: number;
+  bestStreak: number;
+  lastUpdated: string;
+}
+
+const getUserInfo = async (dflIDOrDiscordID: string, habitId: string) => {
+  try {
+    const response = await axios.post(
+      `https://doerforlife.net/api/manychat-discord-telegram/admin/user-management/get-user-info`,
+      {
+        dflIDOrDiscordID,
+      }
+    );
+    const habitStreakArray = response.data.user.habitStreak;
+    const habitStreak = habitStreakArray.find(
+      (habit: HabitStreak) => habit.habitID === habitId
+    );
+    return habitStreak.currentStreak;
+  } catch (error: any) {
+    // Handle network or other unexpected errors
+    logger.error(`Unexpected error for getting users info : ${error.message}`);
   }
 };

@@ -1,8 +1,8 @@
-import { Message } from 'discord.js';
+import { Message } from "discord.js";
 
 export const scheduleMessageCommand = async (message: Message) => {
   await message.reply({
-    content: 'Click the button to schedule a message:',
+    content: "برای ست کردن مسیج رو دکمه زیر کلیک کن.",
     components: [
       {
         type: 1, // Action Row
@@ -10,8 +10,8 @@ export const scheduleMessageCommand = async (message: Message) => {
           {
             type: 2, // Button
             style: 1, // Primary
-            label: 'Schedule Message',
-            customId: 'schedule_message',
+            label: "Schedule Message",
+            customId: "schedule_message",
           },
         ],
       },

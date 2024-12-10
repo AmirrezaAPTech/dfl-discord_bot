@@ -17,6 +17,12 @@ import { secretJournalingCommand } from "../commands/user/secretJournaling";
 import dotenv from "dotenv";
 import { validateAdminAccess, validateUserInServer } from "../utils/validation";
 import { sendIdeaCommand } from "../commands/user/sendIdea";
+import { createTodoThread } from "../utils/todo";
+import {
+  createTask,
+  storeTaskData,
+} from "../services/todo-management/todo.service";
+import { helpCommand } from "../commands/user/help";
 
 dotenv.config();
 
@@ -30,6 +36,7 @@ export const messageCreate = async (message: Message) => {
 
     const client = message.client;
     const guildId = process.env.GUILD_ID;
+    const todoChannel = process.env.TODO_CHANNEL_ID;
     if (!guildId) {
       throw new Error("GUILD_ID is not defined");
     }
@@ -77,7 +84,10 @@ export const messageCreate = async (message: Message) => {
     } else if (message.content.toLowerCase() === "!sendmessage") {
       if (!validateAdminAccess(message)) return;
       await sendMessageCommand(message);
-    } else if (message.content.toLowerCase() === "!sendscheduledmessage") {
+    } else if (
+      message.channelId === "1295347682508017697" &&
+      message.content.toLowerCase() === "!sm"
+    ) {
       if (!validateAdminAccess(message)) return;
       await scheduleMessageCommand(message);
     }
@@ -109,6 +119,8 @@ export const messageCreate = async (message: Message) => {
         await secretJournalingCommand(message);
       } else if (message.content.toLowerCase() === "idea") {
         await sendIdeaCommand(message);
+      } else if (message.content.toLowerCase() === "help") {
+        await helpCommand(message);
       }
     }
 
@@ -148,6 +160,27 @@ export const messageCreate = async (message: Message) => {
           );
         }
       }
+    } else if (message.channel.id === todoChannel) {
+      //TODO
+      const timeRegex = /Time:\s*(\d{2}):(\d{2})/;
+      const match = message.content.match(timeRegex);
+
+      if (!match) {
+        const thread = await message.startThread({
+          name: `تاریخ بی اعتبار`,
+          autoArchiveDuration: 60,
+        });
+        await thread.send(
+          `نحوه فرستادن تودوت اشتباهه! \n برای اینکه حتما تودوت ثبت بشه باید اولش زمان چک شدن و به این صورت مشخص کنی: \n Time: hh:mm`
+        );
+        return;
+      }
+
+      const taskTime = `${match[1]}:${match[2]}`; // Extracted time
+      const taskDescription = message.content.replace(/Time:.*/, "").trim(); // Task description
+
+      // Call createTask instead of directly storing data
+      await createTask(message, taskTime, taskDescription);
     }
   } catch (error) {
     // Log the error and notify the user

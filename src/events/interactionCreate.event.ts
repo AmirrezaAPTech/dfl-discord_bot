@@ -3,13 +3,11 @@ import { handleSendMessageButton } from "../interactions/buttons/sendMessageButt
 import { handleScheduleMessageButton } from "../interactions/buttons/scheduleMessageButton";
 import { handleSecretJournalingButton } from "../interactions/buttons/secretJournalingButton";
 import { handleIdeaButton } from "../interactions/buttons/sendIdeaButton";
+import { handleIdeaTypeChoice } from "../interactions/buttons/handleIdeaTypeChoice"; // New import
 import { handleSendMessageModal } from "../interactions/modals/sendMessageModal";
 import { handleScheduleMessageModal } from "../interactions/modals/scheduleMessageModal";
 import { handleSecretJournalingModal } from "../interactions/modals/secretJournalingModal";
-import {
-  handleIdeaModal,
-  handleSecretChoice,
-} from "../interactions/modals/sendIdeaModal";
+import { handleIdeaModal } from "../interactions/modals/sendIdeaModal";
 
 export const interactionCreate = async (
   client: Client,
@@ -31,10 +29,15 @@ export const interactionCreate = async (
         case "send_idea":
           await handleIdeaButton(interaction);
           break;
-        case "secret_true":
-        case "secret_false":
-          await handleSecretChoice(interaction, client); // Pass to secret choice handler
+        case "choose_secret_idea":
+        case "choose_public_idea":
+          await handleIdeaTypeChoice(interaction, client);
           break;
+        // Remove or repurpose the following if they're no longer needed
+        // case "secret_true":
+        // case "secret_false":
+        //   await handleSecretChoice(interaction, client);
+        //   break;
         default:
           console.warn(`Unhandled button interaction: ${interaction.customId}`);
       }
@@ -47,7 +50,7 @@ export const interactionCreate = async (
           await handleSendMessageModal(interaction);
           break;
         case "modal_schedule_message":
-          await handleScheduleMessageModal(interaction);
+          await handleScheduleMessageModal(interaction, client);
           break;
         case "modal_secret_journaling":
           await handleSecretJournalingModal(interaction, client);

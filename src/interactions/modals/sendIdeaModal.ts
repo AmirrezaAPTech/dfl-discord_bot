@@ -1,87 +1,69 @@
-import {
-  ModalSubmitInteraction,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  Client,
-  ButtonInteraction,
-} from "discord.js";
-import { handleIdea } from "../../services/idea_management/sendIdea.service";
+import { ModalSubmitInteraction, Client } from "discord.js";
+import { handleIdeaModalSubmit } from "../../services/idea_management/sendIdea.service";
 import { logger } from "../../utils/logger";
 
-const tempIdeaData = new Map<string, string>();
+// Define an interface for stored data
+interface IdeaData {
+  isSecret: boolean;
+}
 
+// Exporting tempIdeaData for use in other modules
+export const tempIdeaData = new Map<string, IdeaData>();
+
+/**
+ * Handles the submission of the idea modal.
+ * @param interaction - The modal submission interaction
+ * @param client - The Discord client
+ */
 export const handleIdeaModal = async (
   interaction: ModalSubmitInteraction,
   client: Client
 ) => {
-  if (interaction.customId === "modal_send_Idea") {
-    const content = interaction.fields.getTextInputValue("idea_content");
-    tempIdeaData.set(interaction.user.id, content);
-
-    const secretRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("secret_true")
-        .setLabel("ناشناس")
-        .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId("secret_false")
-        .setLabel("عمومی")
-        .setStyle(ButtonStyle.Secondary)
-    );
-
-    await interaction.reply({
-      content: "ایده شما ثبت شد. آیا می‌خواهید ناشناس باشد یا عمومی؟",
-      components: [secretRow],
-      ephemeral: true,
-    });
-  }
-};
-
-export const handleSecretChoice = async (
-  interaction: ButtonInteraction,
-  client: Client
-) => {
-  const ideaContent = tempIdeaData.get(interaction.user.id);
-  if (!ideaContent) {
-    await interaction.reply({
-      content: "خطایی در بازیابی محتوای ایده رخ داد.",
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const isSecret = interaction.customId === "secret_true";
-
   try {
-    // Acknowledge interaction immediately
-    await interaction.deferUpdate();
+    // Retrieve the stored choice (isSecret) for the user
+    const storedData = tempIdeaData.get(interaction.user.id);
+    if (!storedData) {
+      await interaction.reply({
+        content: "خطایی در بازیابی اطلاعات رخ داد. لطفاً دوباره تلاش کنید.",
+        ephemeral: true,
+      });
+      return;
+    }
 
-    const success = await handleIdea(
+    const { isSecret } = storedData;
+    const content = interaction.fields.getTextInputValue("idea_content");
+
+    // Process the idea based on the user's choice
+    const success = await handleIdeaModalSubmit(
       client,
       interaction,
-      ideaContent,
+      content,
       isSecret
     );
 
     if (success) {
-      await interaction.followUp({
+      await interaction.reply({
         content: `ایده شما به صورت ${isSecret ? "ناشناس" : "عمومی"} ثبت شد.`,
         ephemeral: true,
       });
     } else {
-      await interaction.followUp({
+      await interaction.reply({
         content: "خطایی در ثبت ایده رخ داد. لطفاً دوباره تلاش کنید.",
         ephemeral: true,
       });
     }
-  } catch (error: any) {
-    logger.error(`Error in handleSecretChoice: ${error.message}`);
-    await interaction.followUp({
-      content: "خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.",
-      ephemeral: true,
-    });
-  }
 
-  tempIdeaData.delete(interaction.user.id);
+    // Clean up the stored data
+    tempIdeaData.delete(interaction.user.id);
+  } catch (error: any) {
+    logger.error(`Error handling idea modal: ${error.message}`);
+    if (!interaction.replied) {
+      await interaction.reply({
+        content: "An unexpected error occurred. Please try again later.",
+        ephemeral: true,
+      });
+    }
+    // Ensure cleanup even if an error occurs
+    tempIdeaData.delete(interaction.user.id);
+  }
 };
